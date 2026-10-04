@@ -207,6 +207,11 @@ func (s *Service) Run(ctx context.Context) error {
 
 	s.registerModelRefreshCallback()
 
+	if s.coreManager != nil {
+		s.quotaWeightBalancer = coreauth.NewQuotaWeightBalancer(s.coreManager)
+		s.quotaWeightBalancer.Start(ctx)
+	}
+
 	select {
 	case <-ctx.Done():
 		log.Debug("service context cancelled, shutting down...")
@@ -231,6 +236,9 @@ func (s *Service) Shutdown(ctx context.Context) error {
 	}
 	var shutdownErr error
 	s.shutdownOnce.Do(func() {
+		if s.quotaWeightBalancer != nil {
+			s.quotaWeightBalancer.Stop()
+		}
 		if ctx == nil {
 			ctx = context.Background()
 		}

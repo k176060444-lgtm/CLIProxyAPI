@@ -108,6 +108,9 @@ type Service struct {
 	// wsGateway manages websocket Gemini providers.
 	wsGateway *wsrelay.Manager
 
+	// quotaWeightBalancer manages background Antigravity quota weight balancing.
+	quotaWeightBalancer *coreauth.QuotaWeightBalancer
+
 	homeLifecycleMu              sync.Mutex
 	homeOwnershipMu              sync.Mutex
 	homeConfigCommitMu           sync.Mutex
