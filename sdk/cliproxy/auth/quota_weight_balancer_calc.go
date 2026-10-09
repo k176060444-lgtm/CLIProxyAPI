@@ -12,10 +12,10 @@ type AntigravityQuotaFraction struct {
 	HasFiveHour     bool
 }
 
-// CalculateStrategyThreeWeight implements Strategy 3 (Exponential Penalty / Squared Ratio):
+// CalculateStrategyThreeWeight implements Strategy 1 (Exponential Penalty / 4th-Power Ratio):
 //
 // 1. Ratio_i = Weekly_i / max(Weekly)
-// 2. BaseWeight = clamp(round(10 * Ratio_i^2), 1, 10)
+// 2. BaseWeight = clamp(round(100 * Ratio_i^4), 1, 100)
 // 3. Safety Brake: If FiveHour < 0.20, force FinalWeight = 1
 func CalculateStrategyThreeWeight(weekly, maxWeekly, fiveHour float64, hasFiveHour bool) int64 {
 	if maxWeekly <= 0.001 {
@@ -30,14 +30,16 @@ func CalculateStrategyThreeWeight(weekly, maxWeekly, fiveHour float64, hasFiveHo
 		ratio = 1.0
 	}
 
-	// Squared ratio: (weekly / maxWeekly)^2 * 10
-	val := math.Round(10.0 * ratio * ratio)
+	// 4th-power ratio: (weekly / maxWeekly)^4 * 100
+	ratio2 := ratio * ratio
+	ratio4 := ratio2 * ratio2
+	val := math.Round(100.0 * ratio4)
 	baseWeight := int64(val)
 	if baseWeight < 1 {
 		baseWeight = 1
 	}
-	if baseWeight > 10 {
-		baseWeight = 10
+	if baseWeight > 100 {
+		baseWeight = 100
 	}
 
 	// Safety brake: if 5-hour rolling quota is less than 20%, force to 1
